@@ -68,10 +68,7 @@ public abstract class PictureCycleButton<T> extends AbstractButton implements To
         RenderSystem.setShaderTexture(0, this.texture);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
 
-        ps.pushPose();
-        ps.translate(this.x, this.y, 0.0);
-        this.blit(ps, 2, 2, this.ux, this.vy + this.dvy * this.index, 16, 16);
-        ps.popPose();
+        this.blit(ps, this.x + 2, this.y + 2, this.ux, this.vy + this.dvy * this.index, 16, 16);
     }
 
     @Override

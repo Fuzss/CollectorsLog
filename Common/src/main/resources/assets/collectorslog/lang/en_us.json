@@ -2,6 +2,7 @@
     "gui.collectorslog": "Collector's Log",
 
     "gui.collectorslog.progress": "Collected %d/%d items (%d%%)",
+    "gui.collectorslog.search": "Search...",
     "gui.collectorslog.sortmode.alphabetical": "Sorting alphabetically",
     "gui.collectorslog.sortmode.creative_mode": "Sorting by creative inventory",
     "gui.collectorslog.sortreverse.false": "Sorting forwards",
