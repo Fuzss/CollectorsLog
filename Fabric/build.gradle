@@ -1,0 +1,59 @@
+plugins {
+    id 'fabric-loom' version '0.12-SNAPSHOT'
+}
+archivesBaseName = getArtifactID("fabric")
+
+loom {
+    mixin.defaultRefmapName = "collectorslog.mixins.refmap.json"
+
+    runs {
+        client {
+            client()
+            setConfigName("Fabric Client")
+            ideConfigGenerated(true)
+            runDir("Fabric/run")
+        }
+        server {
+            server()
+            setConfigName("Fabric Server")
+            ideConfigGenerated(true)
+            runDir("Fabric/run")
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraftVersion}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabricLoaderVersion}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabricVersion}"
+    compileOnly project(":Common")
+}
+
+tasks.withType(JavaCompile) {
+    source(project(":Common").sourceSets.main.allSource)
+}
+
+sourcesJar {
+    from project(":Common").sourceSets.main.allJava
+}
+
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
+    srcDir '../Common/src/generated/resources'
+}
+
+processResources {
+    from project(":Common").sourceSets.main.resources
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+setupJar(this)
+
+remapJar {
+    from rootProject.file("LICENSE.md")
+}

@@ -1,0 +1,36 @@
+{
+    "schemaVersion": 1,
+    "id": "collectorslog",
+    "version": "${version}",
+
+    "name": "Collector's Log",
+    "description": "See all the items in the game and whether you've collected them or not",
+    "authors": [
+        "petrak@"
+    ],
+    "contact": {
+    },
+
+    "license": "MIT",
+    "icon": "assets/modid/icon.png",
+
+    "environment": "*",
+    "entrypoints": {
+        "client": [
+            "at.petrak.collectorslog.fabric.FabricInitializer"
+        ]
+    },
+    "mixins": [
+        "collectorslog.mixins.json"
+    ],
+
+    "depends": {
+        "fabricloader": ">=0.14",
+        "fabric": "*",
+        "minecraft": "1.19.x",
+        "java": ">=17"
+    },
+    "suggests": {
+    }
+}
+  

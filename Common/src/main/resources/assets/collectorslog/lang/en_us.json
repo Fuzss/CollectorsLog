@@ -1,0 +1,12 @@
+{
+    "gui.collectorslog": "Collector's Log",
+
+    "gui.collectorslog.progress": "Collected %d/%d items (%d%%)",
+    "gui.collectorslog.sortmode.alphabetical": "Sorting alphabetically",
+    "gui.collectorslog.sortmode.creative_mode": "Sorting by creative inventory",
+    "gui.collectorslog.sortreverse.false": "Sorting forwards",
+    "gui.collectorslog.sortreverse.true": "Sorting backwards",
+    "gui.collectorslog.filtermode.collected": "Showing only collected items",
+    "gui.collectorslog.filtermode.uncollected": "Showing only uncollected items",
+    "gui.collectorslog.filtermode.all": "Showing all items"
+}
