@@ -1,5 +1,6 @@
 package at.petrak.collectorslog.xplat;
 
+import at.petrak.collectorslog.CollectorsLogConfig;
 import at.petrak.collectorslog.api.CollectorsLogAPI;
 
 import java.util.ServiceLoader;
@@ -7,6 +8,8 @@ import java.util.stream.Collectors;
 
 public interface IXplatAbstractions {
     Platform platform();
+
+    CollectorsLogConfig getConfig();
 
     IXplatAbstractions INSTANCE = find();
 

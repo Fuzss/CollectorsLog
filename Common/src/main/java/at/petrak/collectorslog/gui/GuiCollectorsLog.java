@@ -1,5 +1,6 @@
 package at.petrak.collectorslog.gui;
 
+import at.petrak.collectorslog.xplat.IXplatAbstractions;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -78,14 +79,16 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
             this.collectedItems.clear();
             this.allAllowedItems.clear();
             Registry.ITEM.iterator().forEachRemaining(item -> {
-                var fillee = NonNullList.<ItemStack>create();
-                item.fillItemCategory(CreativeModeTab.TAB_SEARCH, fillee);
-                if (!fillee.isEmpty()) {
-                    // prevent every single enchanted book from showing up
-                    this.allAllowedItems.add(fillee.get(0).getItem());
-                    var foundCount = this.minecraft.player.getStats().getValue(Stats.ITEM_PICKED_UP, item);
-                    if (foundCount > 0) {
-                        this.collectedItems.add(item);
+                if (IXplatAbstractions.INSTANCE.getConfig().isItemAllowed(item)) {
+                    var fillee = NonNullList.<ItemStack>create();
+                    item.fillItemCategory(CreativeModeTab.TAB_SEARCH, fillee);
+                    if (!fillee.isEmpty()) {
+                        // prevent every single enchanted book from showing up
+                        this.allAllowedItems.add(fillee.get(0).getItem());
+                        var foundCount = this.minecraft.player.getStats().getValue(Stats.ITEM_PICKED_UP, item);
+                        if (foundCount > 0) {
+                            this.collectedItems.add(item);
+                        }
                     }
                 }
             });
@@ -99,11 +102,11 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         var bookCornerY = (height - BOOK_HEIGHT) / 2;
 
 
-        var rightMargin = bookCornerX + BOOK_WIDTH / 2 - 24;
+        var rightMargin = bookCornerX + BOOK_WIDTH / 2 - 28;
         var buttonHeight = bookCornerY + 4 + 20;
 
-        this.searchBox = new EditBox(this.font, bookCornerX + 6, buttonHeight + 1,
-            rightMargin - 44 - bookCornerX - 9, 18, Component.translatable("gui.collectorslog.search"));
+        this.searchBox = new EditBox(this.font, bookCornerX + 8, buttonHeight + 1,
+            rightMargin - 44 - bookCornerX - 11, 18, Component.translatable("gui.collectorslog.search"));
         this.searchBox.setSuggestion(Component.translatable("gui.collectorslog.search").getString());
         this.searchBox.setResponder(s -> {
             this.searchBox.setSuggestion(s.isEmpty()
@@ -113,14 +116,14 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         });
 
         this.sortModeButton = new PCBInternal<SortMode>(rightMargin - 44, buttonHeight, List.of(SortMode.values()), 0,
-            128) {
+            160) {
             @Override
             public Component getTooltipFromValue() {
                 return Component.translatable("gui.collectorslog.sortmode." + this.getValue().key);
             }
         };
         this.reverseSortButton = new PCBInternal<Boolean>(rightMargin - 22, buttonHeight, List.of(false, true), 16,
-            128) {
+            160) {
             @Override
             public Component getTooltipFromValue() {
                 return Component.translatable("gui.collectorslog.sortreverse." + this.getValue());
@@ -128,7 +131,7 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         };
         this.filterModeButton = new PCBInternal<FilterMode>(rightMargin, buttonHeight,
             List.of(FilterMode.values()), 32,
-            128) {
+            160) {
             @Override
             public Component getTooltipFromValue() {
                 return Component.translatable("gui.collectorslog.filtermode." + this.getValue().key);
@@ -136,10 +139,10 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         };
 
         var pageButtonY = bookCornerY + BOOK_HEIGHT - 14;
-        this.turnPageBackButton = this.makeTurnPageButton(bookCornerX + 4, pageButtonY, 48, 128, 0);
-        this.turnPageLandingButton = this.makeTurnPageButton(bookCornerX + 4 + 2 + 18, pageButtonY, 84, 128, 1);
-        this.turnPageForwardButton = this.makeTurnPageButton(width / 2 + BOOK_WIDTH / 2 - 4 - 18,
-            pageButtonY, 66, 128, 2);
+        this.turnPageBackButton = this.makeTurnPageButton(bookCornerX + 8, pageButtonY, 48, 160, 0);
+        this.turnPageLandingButton = this.makeTurnPageButton(bookCornerX + 8 + 2 + 18, pageButtonY, 84, 160, 1);
+        this.turnPageForwardButton = this.makeTurnPageButton(width / 2 + BOOK_WIDTH / 2 - 8 - 18,
+            pageButtonY, 66, 160, 2);
 
         this.addRenderableWidget(this.searchBox);
         this.addRenderableWidget(this.sortModeButton);
@@ -235,10 +238,10 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         ps.translate(BOOK_WIDTH / 2.0, BOOK_HEIGHT - 12, 0);
         var pageNumber = Component.literal(String.valueOf(this.pageSpread * 2 + 1));
         var width = this.font.width(pageNumber);
-        drawString(ps, this.font, pageNumber, -width - 6, 0, 0xffffffff);
+        drawString(ps, this.font, pageNumber, -width - 10, 0, 0xffffffff);
         pageNumber = Component.literal(
             String.format("%d/%d", this.pageSpread * 2 + 2, maxUsefulPage(this.displayedItems.size()) * 2 + 2));
-        drawString(ps, this.font, pageNumber, 6, 0, 0xffffffff);
+        drawString(ps, this.font, pageNumber, 10, 0, 0xffffffff);
         ps.popPose();
 
         ps.popPose();
@@ -260,8 +263,8 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         RenderSystem.setShaderTexture(0, TEXTURE_LOC);
         ps.pushPose();
         blit(ps,
-            0, 0, BOOK_WIDTH, BOOK_HEIGHT, // x, y, w, h
-            0, 0, BOOK_TEX_WIDTH, BOOK_TEX_HEIGHT, // u, v, uw, vh
+            -16, -16, BOOK_WIDTH + 32, BOOK_HEIGHT + 32, // x, y, w, h
+            0, 0, BOOK_TEX_WIDTH + 16, BOOK_TEX_HEIGHT + 17, // u, v, uw, vh
             256, 256); // texture size
         ps.popPose();
     }
@@ -281,7 +284,7 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         var dy = 17;
 
         ps.pushPose();
-        ps.translate(6, 4, 0);
+        ps.translate(10, 4, 0);
         if (rhs) {
             ps.translate(BOOK_WIDTH / 2.0, 0, 0);
         }

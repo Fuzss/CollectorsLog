@@ -30,7 +30,7 @@ public class MixinInventoryScreen {
         } else {
             ((AccessorScreen) self).cl$addRenderableWidget(
                 new ImageButton(recipeBookButton.x + recipeBookButton.getWidth() + 2,
-                    recipeBookButton.y, 20, 18, 192, 0, GuiCollectorsLog.TEXTURE_LOC, button -> {
+                    recipeBookButton.y, 20, 18, 208, 0, GuiCollectorsLog.TEXTURE_LOC, button -> {
                     Minecraft.getInstance().setScreen(new GuiCollectorsLog(self));
                 }));
         }
