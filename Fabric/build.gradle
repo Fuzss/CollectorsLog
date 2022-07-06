@@ -63,7 +63,3 @@ processResources {
 }
 
 setupJar(this)
-
-remapJar {
-    from rootProject.file("LICENSE.md")
-}
