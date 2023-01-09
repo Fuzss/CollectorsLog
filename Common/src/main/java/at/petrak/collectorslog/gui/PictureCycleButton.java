@@ -4,19 +4,17 @@ import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.TooltipAccessor;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 
 import java.util.List;
 
-public abstract class PictureCycleButton<T> extends AbstractButton implements TooltipAccessor {
-    private List<T> cycle;
+public abstract class PictureCycleButton<T> extends AbstractButton {
+    private final List<T> cycle;
     private int index = 0;
 
     private final ResourceLocation texture;
@@ -33,6 +31,8 @@ public abstract class PictureCycleButton<T> extends AbstractButton implements To
         this.ux = ux;
         this.vy = vy;
         this.dvy = dvy;
+        this.setTooltipDelay(10);
+        this.updateTooltip();
     }
 
     public abstract Component getTooltipFromValue();
@@ -41,11 +41,6 @@ public abstract class PictureCycleButton<T> extends AbstractButton implements To
 
     public T getValue() {
         return this.cycle.get(this.index);
-    }
-
-    @Override
-    public List<FormattedCharSequence> getTooltip() {
-        return List.of(this.getTooltipFromValue().getVisualOrderText());
     }
 
     @Override
@@ -58,6 +53,12 @@ public abstract class PictureCycleButton<T> extends AbstractButton implements To
         this.index = Mth.positiveModulo(this.index, this.cycle.size());
 
         this.onChange();
+
+        this.updateTooltip();
+    }
+
+    private void updateTooltip() {
+        this.setTooltip(Tooltip.create(this.getTooltipFromValue()));
     }
 
     @Override
@@ -68,10 +69,6 @@ public abstract class PictureCycleButton<T> extends AbstractButton implements To
         RenderSystem.setShaderTexture(0, this.texture);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
 
-        this.blit(ps, this.x + 2, this.y + 2, this.ux, this.vy + this.dvy * this.index, 16, 16);
-    }
-
-    @Override
-    public void updateNarration(NarrationElementOutput narrationElementOutput) {
+        this.blit(ps, this.getX() + 2, this.getY() + 2, this.ux, this.vy + this.dvy * this.index, 16, 16);
     }
 }

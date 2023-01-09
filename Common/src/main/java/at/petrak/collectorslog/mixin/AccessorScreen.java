@@ -1,6 +1,6 @@
 package at.petrak.collectorslog.mixin;
 
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.Screen;
@@ -13,8 +13,8 @@ import java.util.List;
 @Mixin(Screen.class)
 public interface AccessorScreen {
     @Accessor("renderables")
-    List<Widget> cl$getRenderables();
+    List<Renderable> cl$getRenderables();
 
     @Invoker("addRenderableWidget")
-    <T extends GuiEventListener & Widget & NarratableEntry> T cl$addRenderableWidget(T widget);
+    <T extends GuiEventListener & Renderable & NarratableEntry> T cl$addRenderableWidget(T widget);
 }

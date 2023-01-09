@@ -1,27 +1,33 @@
 package at.petrak.collectorslog.gui;
 
-import at.petrak.collectorslog.xplat.IXplatAbstractions;
+import at.petrak.collectorslog.CollectorsLogConfig;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.components.TooltipAccessor;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.achievement.StatsUpdateListener;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.searchtree.SearchRegistry;
+import net.minecraft.client.searchtree.SearchTree;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ServerboundClientCommandPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -44,8 +50,8 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
     private final Screen previous;
     private boolean isLoading = true;
 
-    private Set<Item> collectedItems = new HashSet();
-    private Set<Item> allAllowedItems = new HashSet<>();
+    private final Set<Item> collectedItems = new HashSet<>();
+    private final Set<Item> allAllowedItems = new HashSet<>();
     private List<ItemStack> displayedItems = new ArrayList<>();
 
     private EditBox searchBox = null;
@@ -59,9 +65,10 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
     // This increments by 1 for every *two* pages spread across.
     private int pageSpread = 0;
 
-    public GuiCollectorsLog(@Nullable Screen previous) {
+    public GuiCollectorsLog(@Nullable Screen previous, Player player, FeatureFlagSet featureFlagSet, boolean displayOperatorCreativeTab) {
         super(Component.translatable("gui.collectorslog"));
         this.previous = previous;
+        CreativeModeTabs.tryRebuildTabContents(featureFlagSet, player.canUseGameMasterBlocks() && displayOperatorCreativeTab);
     }
 
     @Override
@@ -78,17 +85,16 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
 
             this.collectedItems.clear();
             this.allAllowedItems.clear();
-            Registry.ITEM.iterator().forEachRemaining(item -> {
-                if (IXplatAbstractions.INSTANCE.getConfig().isItemAllowed(item)) {
-                    var fillee = NonNullList.<ItemStack>create();
-                    item.fillItemCategory(CreativeModeTab.TAB_SEARCH, fillee);
-                    if (!fillee.isEmpty()) {
-                        // prevent every single enchanted book from showing up
-                        this.allAllowedItems.add(fillee.get(0).getItem());
-                        var foundCount = this.minecraft.player.getStats().getValue(Stats.ITEM_PICKED_UP, item);
-                        if (foundCount > 0) {
-                            this.collectedItems.add(item);
-                        }
+            NonNullList<ItemStack> fillee = NonNullList.create();
+            CreativeModeTab creativeModeTab = CreativeModeTabs.searchTab();
+            fillee.addAll(creativeModeTab.getSearchTabDisplayItems());
+            fillee.iterator().forEachRemaining(item -> {
+                if (CollectorsLogConfig.INSTANCE.isItemAllowed(item.getItem())) {
+                    this.allAllowedItems.add(item.getItem());
+                    int foundCount = this.minecraft.player.getStats().getValue(Stats.ITEM_PICKED_UP, item.getItem());
+                    foundCount += this.minecraft.player.getStats().getValue(Stats.ITEM_CRAFTED, item.getItem());
+                    if (foundCount > 0) {
+                        this.collectedItems.add(item.getItem());
                     }
                 }
             });
@@ -98,12 +104,12 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
     }
 
     private void initWidgets() {
-        var bookCornerX = (width - BOOK_WIDTH) / 2;
-        var bookCornerY = (height - BOOK_HEIGHT) / 2;
+        int bookCornerX = (this.width - BOOK_WIDTH) / 2;
+        int bookCornerY = (this.height - BOOK_HEIGHT) / 2;
 
 
-        var rightMargin = bookCornerX + BOOK_WIDTH / 2 - 28;
-        var buttonHeight = bookCornerY + 4 + 20;
+        int rightMargin = bookCornerX + BOOK_WIDTH / 2 - 28;
+        int buttonHeight = bookCornerY + 4 + 20;
 
         this.searchBox = new EditBox(this.font, bookCornerX + 8, buttonHeight + 1,
             rightMargin - 44 - bookCornerX - 11, 18, Component.translatable("gui.collectorslog.search"));
@@ -138,10 +144,10 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
             }
         };
 
-        var pageButtonY = bookCornerY + BOOK_HEIGHT - 14;
+        int pageButtonY = bookCornerY + BOOK_HEIGHT - 14;
         this.turnPageBackButton = this.makeTurnPageButton(bookCornerX + 8, pageButtonY, 48, 160, 0);
         this.turnPageLandingButton = this.makeTurnPageButton(bookCornerX + 8 + 2 + 18, pageButtonY, 84, 160, 1);
-        this.turnPageForwardButton = this.makeTurnPageButton(width / 2 + BOOK_WIDTH / 2 - 8 - 18,
+        this.turnPageForwardButton = this.makeTurnPageButton(this.width / 2 + BOOK_WIDTH / 2 - 8 - 18,
             pageButtonY, 66, 160, 2);
 
         this.addRenderableWidget(this.searchBox);
@@ -158,21 +164,21 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
     private void sortItems() {
         this.displayedItems.clear();
 
-        var sortMode = this.sortModeButton.getValue();
+        SortMode sortMode = this.sortModeButton.getValue();
         boolean reverseSort = this.reverseSortButton.getValue();
-        var filterMode = this.filterModeButton.getValue();
+        FilterMode filterMode = this.filterModeButton.getValue();
 
         Stream<Item> searchSpace;
         String search = this.searchBox.getValue();
         if (search.isEmpty()) {
-            searchSpace = Registry.ITEM.stream();
+            searchSpace = BuiltInRegistries.ITEM.stream();
         } else {
-            var st = this.minecraft.getSearchTree(SearchRegistry.CREATIVE_NAMES);
+            SearchTree<ItemStack> st = this.minecraft.getSearchTree(SearchRegistry.CREATIVE_NAMES);
             searchSpace = st.search(search.toLowerCase(Locale.ROOT)).stream().map(ItemStack::getItem);
         }
 
         searchSpace.forEachOrdered(item -> {
-            if (allAllowedItems.contains(item) && filterMode.allow(item, this.collectedItems)) {
+            if (this.allAllowedItems.contains(item) && filterMode.allow(item, this.collectedItems)) {
                 this.displayedItems.add(new ItemStack(item));
             }
         });
@@ -201,10 +207,10 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         this.pageSpread += delta;
         this.pageSpread = Mth.clamp(this.pageSpread, 0, maxUsefulPage(this.displayedItems.size()));
 
-        for (var widget : List.of(this.searchBox, this.sortModeButton, this.reverseSortButton, this.filterModeButton)) {
+        for (AbstractWidget widget : List.of(this.searchBox, this.sortModeButton, this.reverseSortButton, this.filterModeButton)) {
             widget.visible = (this.pageSpread == 0);
         }
-        for (var widget : List.of(this.turnPageBackButton, this.turnPageLandingButton)) {
+        for (ImageButton widget : List.of(this.turnPageBackButton, this.turnPageLandingButton)) {
             widget.visible = (this.pageSpread != 0);
         }
         this.turnPageForwardButton.visible = this.pageSpread < maxUsefulPage(this.displayedItems.size());
@@ -214,11 +220,11 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
     public void render(PoseStack ps, int mx, int my, float partialTicks) {
         this.renderBackground(ps);
         ps.pushPose();
-        ps.translate((width - BOOK_WIDTH) / 2.0, (height - BOOK_HEIGHT) / 2.0, 1);
+        ps.translate((this.width - BOOK_WIDTH) / 2.0, (this.height - BOOK_HEIGHT) / 2.0, 1);
         this.renderBg(ps, mx, my, partialTicks);
 
-        var titleLocX = BOOK_WIDTH / 4; // the *center* of the *left half* of the book
-        var titleLocY = 8;
+        int titleLocX = BOOK_WIDTH / 4; // the *center* of the *left half* of the book
+        int titleLocY = 8;
         if (this.isLoading) {
             drawCenteredString(ps, this.font, PENDING_TEXT, titleLocX, titleLocY, -1);
             String loadingSymbol = LOADING_SYMBOLS[(int) (Util.getMillis() / 150L % (long) LOADING_SYMBOLS.length)];
@@ -236,8 +242,8 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
 
         ps.pushPose();
         ps.translate(BOOK_WIDTH / 2.0, BOOK_HEIGHT - 12, 0);
-        var pageNumber = Component.literal(String.valueOf(this.pageSpread * 2 + 1));
-        var width = this.font.width(pageNumber);
+        MutableComponent pageNumber = Component.literal(String.valueOf(this.pageSpread * 2 + 1));
+        int width = this.font.width(pageNumber);
         drawString(ps, this.font, pageNumber, -width - 10, 0, 0xffffffff);
         pageNumber = Component.literal(
             String.format("%d/%d", this.pageSpread * 2 + 2, maxUsefulPage(this.displayedItems.size()) * 2 + 2));
@@ -248,13 +254,6 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         ps.translate(0, 0, 1);
         super.render(ps, mx, my, partialTicks);
 
-        var kid = this.getChildAt(mx, my);
-        kid.ifPresent(kiddo -> {
-            if (kiddo instanceof TooltipAccessor tt) {
-                var tooltip = tt.getTooltip();
-                this.renderTooltip(ps, tooltip, mx, my);
-            }
-        });
     }
 
     private void renderBg(PoseStack ps, int mx, int my, float partialTick) {
@@ -270,18 +269,18 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
     }
 
     private void renderItemList(PoseStack ps, boolean rhs) {
-        var veryFirstPage = !rhs && this.pageSpread == 0;
+        boolean veryFirstPage = !rhs && this.pageSpread == 0;
 
-        var page = this.pageSpread * 2 + (rhs ? 1 : 0);
-        var startIdx = getItemStartIdxOnPage(page);
-        var endIdx = startIdx + (veryFirstPage ? ITEM_COUNT_FIRST_PAGE : ITEM_COUNT_OTHER_PAGE);
+        int page = this.pageSpread * 2 + (rhs ? 1 : 0);
+        int startIdx = getItemStartIdxOnPage(page);
+        int endIdx = startIdx + (veryFirstPage ? ITEM_COUNT_FIRST_PAGE : ITEM_COUNT_OTHER_PAGE);
 
         if (startIdx >= this.displayedItems.size()) {
             return;
         }
-        var slice = this.displayedItems.subList(startIdx, Math.min(endIdx, this.displayedItems.size()));
+        List<ItemStack> slice = this.displayedItems.subList(startIdx, Math.min(endIdx, this.displayedItems.size()));
 
-        var dy = 17;
+        int dy = 17;
 
         ps.pushPose();
         ps.translate(10, 4, 0);
@@ -292,20 +291,20 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
             ps.translate(0, dy * 3, 0);
         }
 
-        for (var stack : slice) {
-            var hasIt = this.collectedItems.contains(stack.getItem());
+        for (ItemStack stack : slice) {
+            boolean hasIt = this.collectedItems.contains(stack.getItem());
             RenderHelper.renderItemStackInGui(ps, stack, 0, 0);
 
             ps.pushPose();
             ps.translate(20, 12, 0);
-            var toWrite = stack.getHoverName();
-            var width = this.minecraft.font.width(toWrite);
-            var okWidth = BOOK_WIDTH / 2 - 24 - 12;
+            Component toWrite = stack.getHoverName();
+            int width = this.minecraft.font.width(toWrite);
+            int okWidth = BOOK_WIDTH / 2 - 24 - 12;
             if (width > okWidth) {
                 ps.scale((float) okWidth / width, (float) okWidth / width, 1);
             }
             ps.translate(0, -8, 0);
-            drawString(ps, minecraft.font, toWrite, 0, 0, hasIt ? 0xff_88ff88 : 0xff_ff6666);
+            drawString(ps, this.minecraft.font, toWrite, 0, 0, hasIt ? 0xff_88ff88 : 0xff_ff6666);
             ps.popPose();
 
             ps.translate(0, dy, 0);
@@ -347,6 +346,11 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
         @Override
         public void onChange() {
             GuiCollectorsLog.this.sortItems();
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+
         }
     }
 
