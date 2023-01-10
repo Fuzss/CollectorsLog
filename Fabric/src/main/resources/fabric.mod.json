@@ -20,9 +20,6 @@
             "at.petrak.collectorslog.fabric.FabricInitializer"
         ]
     },
-    "mixins": [
-        "collectorslog.mixins.json"
-    ],
 
     "depends": {
         "fabricloader": ">=0.14",

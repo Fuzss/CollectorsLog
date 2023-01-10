@@ -1,4 +1,4 @@
-package at.petrak.collectorslog.gui;
+package at.petrak.collectorslog.client.gui.screens;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;

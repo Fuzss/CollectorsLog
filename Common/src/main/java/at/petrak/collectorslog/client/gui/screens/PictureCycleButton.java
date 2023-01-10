@@ -1,4 +1,4 @@
-package at.petrak.collectorslog.gui;
+package at.petrak.collectorslog.client.gui.screens;
 
 import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.systems.RenderSystem;

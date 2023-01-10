@@ -1,4 +1,4 @@
-package at.petrak.collectorslog.gui;
+package at.petrak.collectorslog.client.gui.screens;
 
 import net.minecraft.world.item.ItemStack;
 

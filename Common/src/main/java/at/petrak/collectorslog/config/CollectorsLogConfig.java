@@ -1,4 +1,4 @@
-package at.petrak.collectorslog;
+package at.petrak.collectorslog.config;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
@@ -107,12 +107,16 @@ public final class CollectorsLogConfig {
     public static final CollectorsLogConfig INSTANCE = new CollectorsLogConfig(new ForgeConfigSpec.Builder());
 
     public final ForgeConfigSpec.ConfigValue<List<? extends String>> denylist;
-    public final ForgeConfigSpec spec;
+    private final ForgeConfigSpec spec;
 
     private CollectorsLogConfig(ForgeConfigSpec.Builder builder) {
         this.denylist = builder.comment("Items that won't show up in the collector's log")
                 .defineList("denylist", CollectorsLogConfig.DEFAULT_DENYLIST, t -> true);
         this.spec = builder.build();
+    }
+
+    public ForgeConfigSpec getSpec() {
+        return this.spec;
     }
 
     public boolean isItemAllowed(Item item) {

@@ -1,6 +1,6 @@
-package at.petrak.collectorslog.gui;
+package at.petrak.collectorslog.client.gui.screens;
 
-import at.petrak.collectorslog.CollectorsLogConfig;
+import at.petrak.collectorslog.config.CollectorsLogConfig;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -35,11 +35,11 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static at.petrak.collectorslog.api.CollectorsLogAPI.modLoc;
+import static at.petrak.collectorslog.CollectorsLog.id;
 
 public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
     public static final Component PENDING_TEXT = Component.translatable("multiplayer.downloadingStats");
-    public static final ResourceLocation TEXTURE_LOC = modLoc("textures/gui/collectorslog.png");
+    public static final ResourceLocation TEXTURE_LOC = id("textures/gui/collectorslog.png");
     private static final int BOOK_TEX_WIDTH = 192;
     private static final int BOOK_TEX_HEIGHT = 128;
 

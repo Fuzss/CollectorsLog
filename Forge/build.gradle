@@ -26,8 +26,8 @@ minecraft {
         client {
             workingDirectory project.file('run')
             ideaModule "${rootProject.name}.${project.name}.main"
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+//            property 'mixin.env.remapRefMap', 'true'
+//            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
                 create(modID) {
                     source sourceSets.main
@@ -39,8 +39,8 @@ minecraft {
         server {
             workingDirectory project.file('run')
             ideaModule "${rootProject.name}.${project.name}.main"
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+//            property 'mixin.env.remapRefMap', 'true'
+//            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
                 create(modID) {
                     source sourceSets.main
@@ -103,10 +103,10 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
-mixin {
-    add sourceSets.main, "collectorslog.mixins.refmap.json"
-    config "collectorslog.mixins.json"
-}
+//mixin {
+//    add sourceSets.main, "collectorslog.mixins.refmap.json"
+//    config "collectorslog.mixins.json"
+//}
 
 sourcesJar {
     from project(":Common").sourceSets.main.allJava
