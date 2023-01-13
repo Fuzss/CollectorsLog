@@ -1,5 +1,6 @@
 package at.petrak.collectorslog.client.gui.screens;
 
+import at.petrak.collectorslog.CollectorsLog;
 import at.petrak.collectorslog.config.CollectorsLogConfig;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -35,11 +36,10 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static at.petrak.collectorslog.CollectorsLog.id;
-
-public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
+public class CollectorsLogScreen extends Screen implements StatsUpdateListener {
     public static final Component PENDING_TEXT = Component.translatable("multiplayer.downloadingStats");
-    public static final ResourceLocation TEXTURE_LOC = id("textures/gui/collectorslog.png");
+    public static final ResourceLocation TEXTURE_LOC = CollectorsLog.id("textures/gui/collectorslog.png");
+    public static final ResourceLocation NEW_INDEX_LOCATION = CollectorsLog.id("textures/gui/index.png");
     private static final int BOOK_TEX_WIDTH = 192;
     private static final int BOOK_TEX_HEIGHT = 128;
 
@@ -65,7 +65,7 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
     // This increments by 1 for every *two* pages spread across.
     private int pageSpread = 0;
 
-    public GuiCollectorsLog(@Nullable Screen previous, Player player, FeatureFlagSet featureFlagSet, boolean displayOperatorCreativeTab) {
+    public CollectorsLogScreen(@Nullable Screen previous, Player player, FeatureFlagSet featureFlagSet, boolean displayOperatorCreativeTab) {
         super(Component.translatable("gui.collectorslog"));
         this.previous = previous;
         CreativeModeTabs.tryRebuildTabContents(featureFlagSet, player.canUseGameMasterBlocks() && displayOperatorCreativeTab);
@@ -345,7 +345,7 @@ public class GuiCollectorsLog extends Screen implements StatsUpdateListener {
 
         @Override
         public void onChange() {
-            GuiCollectorsLog.this.sortItems();
+            CollectorsLogScreen.this.sortItems();
         }
 
         @Override

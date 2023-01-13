@@ -2,8 +2,9 @@ package at.petrak.collectorslog.forge;
 
 import at.petrak.collectorslog.CollectorsLog;
 import at.petrak.collectorslog.config.CollectorsLogConfig;
-import at.petrak.collectorslog.handler.AddButtonHandler;
+import at.petrak.collectorslog.client.handler.CollectorsLogButtonHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraftforge.api.distmarker.Dist;
@@ -27,14 +28,17 @@ public class ForgeInitializer {
 
     private static void registerHandlers() {
         MinecraftForge.EVENT_BUS.addListener((final ScreenEvent.Init.Post evt) -> {
+            Screen screen = evt.getScreen();
             if (evt.getScreen() instanceof InventoryScreen) {
-                Screen screen = evt.getScreen();
-                AddButtonHandler.onScreenInit$Post(screen, Minecraft.getInstance(), screen.width, screen.height, screen.renderables, evt::addListener);
+                CollectorsLogButtonHandler.onScreenInit$Post$1(screen, Minecraft.getInstance(), screen.width, screen.height, screen.renderables, evt::addListener);
+            }
+            if (evt.getScreen() instanceof PauseScreen) {
+                CollectorsLogButtonHandler.onScreenInit$Post$2(screen, Minecraft.getInstance(), screen.width, screen.height, screen.renderables, evt::addListener);
             }
         });
         MinecraftForge.EVENT_BUS.addListener((final ScreenEvent.MouseButtonPressed.Post evt) -> {
             if (evt.getScreen() instanceof InventoryScreen && evt.wasHandled()) {
-                AddButtonHandler.mouseClicked(evt.getScreen(), evt.getMouseX(), evt.getMouseY(), evt.getButton());
+                CollectorsLogButtonHandler.onMouseClicked$Post(evt.getScreen(), evt.getMouseX(), evt.getMouseY(), evt.getButton());
             }
         });
     }
